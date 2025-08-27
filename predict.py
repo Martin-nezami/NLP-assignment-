@@ -1,31 +1,59 @@
+# predict.py
+import argparse
+import sys
 import joblib
-from sklearn.feature_extraction.text import TfidfVectorizer
+from pathlib import Path
 
-# Load the saved model and vectorizer
-model = joblib.load('classifier_model.joblib')
-vectorizer = joblib.load('vectorizer.joblib')
 
-def preprocess_text(text):
-    # Apply the same preprocessing steps as during training
-    processed_text = text.lower() if text else ''
-    return processed_text
+def load_pipeline(path: str = "text_clf.joblib"):
+    p = Path(path)
+    if not p.exists():
+        raise FileNotFoundError(
+            f"Missing '{path}'. Train the model first by running: python Train_Model.py"
+        )
+    return joblib.load(p)
 
-def predict_category(text):
-    # Preprocess the input text
-    preprocessed_text = preprocess_text(text)
 
-    # Vectorize the preprocessed text
-    text_vectorized = vectorizer.transform([preprocessed_text])
+def main():
+    parser = argparse.ArgumentParser(description="Predict a label for input text.")
+    parser.add_argument(
+        "-t", "--text",
+        type=str,
+        help="Text to classify. If omitted, reads from STDIN.",
+    )
+    parser.add_argument(
+        "-m", "--model",
+        type=str,
+        default="text_clf.joblib",
+        help="Path to saved pipeline (.joblib).",
+    )
+    args = parser.parse_args()
 
-    # Make predictions using the trained model
-    prediction = model.predict(text_vectorized)
+    if args.text is None:
+        print("Enter/paste text, then Ctrl-D (Unix) or Ctrl-Z + Enter (Windows):")
+        text = sys.stdin.read().strip()
+    else:
+        text = args.text.strip()
 
-    return prediction[0]
+    if not text:
+        print("No text provided.")
+        sys.exit(1)
+
+    pipe = load_pipeline(args.model)
+    pred = pipe.predict([text])[0]
+    proba = None
+    if hasattr(pipe[-1], "predict_proba"):
+        # Get probability of the predicted class for a friendly confidence signal
+        probs = pipe[-1].predict_proba(pipe[:-1].transform([text]))[0]
+        # map index back to class name
+        classes = list(pipe[-1].classes_)
+        proba = dict(zip(classes, probs)).get(pred, None)
+
+    if proba is not None:
+        print(f"Prediction: {pred}  (confidence ~ {proba:.2f})")
+    else:
+        print(f"Prediction: {pred}")
+
 
 if __name__ == "__main__":
-    # Take input from the user
-    user_input = input("Enter a text for prediction: ")
-
-    # Make prediction on user input
-    prediction = predict_category(user_input)
-    print(f'Prediction for the input text: {prediction}')
+    main()
