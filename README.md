@@ -1,4 +1,4 @@
-# Wikipedia Text Classifier
+# Wikipedia Text Classification 
 
 ## Overview
 This project implements a **text classification System** using **Wikipedia articles** as the dataset. through by Natural Language Processing (NLP) and Machine Learning (ML) techniques.
