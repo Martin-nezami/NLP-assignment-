@@ -1,5 +1,17 @@
-spacy
-scikit-learn
-pandas
-wikipedia-api
-joblib
+System Requirements:
+
+    Python Version:
+        Python 3.x (recommended Python 3.8 or later).
+
+    Software Requirements:
+
+    Python Packages:
+        Install the required dependencies using pip:
+        pip install -r requirements.txt
+
+        The main libraries include:
+            spacy
+            scikit-learn
+            pandas
+            wikipedia-api
+            joblib
